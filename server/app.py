@@ -52,6 +52,31 @@ api.add_resource(ClearSession, '/clear')
 api.add_resource(IndexArticle, '/articles')
 api.add_resource(ShowArticle, '/articles/<int:id>')
 
+class Login(Resource):
+    def post(self):
+        user = User.query.filter(User.username == request.json['username']).first()
+
+        if user:
+            session['user_id'] = user.id
+            return make_response(user.to_dict(), 200)
+api.add_resource(Login, '/login')
+
+class Logout(Resource):
+    def delete(self):
+        session.pop('user_id')
+        # session['user_id'] = None
+        return make_response({}, 204)
+api.add_resource(Logout, '/logout')
+
+class CheckSession(Resource):
+    def get(self):
+        user = User.query.filter_by(id=session.get('user_id')).first()
+        if user:
+            return make_response(user.to_dict(), 200)
+        else:
+            return make_response({}, 401)
+
+api.add_resource(CheckSession, '/check_session')
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
